@@ -91,7 +91,7 @@ sol = simplify(sol)
 %% Questions 8-10: The Method of Undetermined Coefficients from SCRATCH
 clc, clear, close all
 % Question 8
-syms A B t
+syms A B t C1 C2
 syms y(t) a b
 Dy = diff(y,t); D2y = diff(y,t, t);
 f = 260*cos(2*t)
@@ -107,11 +107,34 @@ variables = [A, B]
 % find and display the undetermined coefficients
 [A, B] = solve(equations, variables) 
 
+
 % Questions 9-10
-Y = A * cos(2*t) + B * sin(2*t) % our guess;
-Dy = diff(Y, t)
-Y = matlabFunction(Y); % our guess);
-Dy = matlabFunction(Dy);
+Yp = A * cos(2*t) + B * sin(2*t); % our guess;
+
+% Solve for homogenous solution
+DE = 4*D2y + 4*Dy + 17*y == 0;
+Yh = simplify(dsolve(DE));
+
+% Get general form
+Y = simplify(Yh + Yp);
+Dy = diff(Y, t);
+
+% Solve for C1 and C2 in general form
+Y = matlabFunction(Y);
+Dy = matlabFunction(diff(Y,t));
+eqns = [Y(sym(C1), sym(C2), 0)==4, Dy(sym(C1), sym(C2), 0)==0];
+C = solve(eqns, C1, C2);
+
+% Sub in C1 and C2 values
+Y = simplify(Yh + Yp);
+Y = subs(Y, C1, C.C1);
+Y = subs(Y, C2, C.C2);
+
+% Make new matlab functions for new solutions
+Y = matlabFunction(Y)
+Dy = matlabFunction(diff(Y,t))
+Yp = matlabFunction(Yp)
+Ypp = matlabFunction(diff(Yp, t))
 
 fig3 = figure(3);
 time = 0: 0.01 : 10;
@@ -124,7 +147,7 @@ plot(time, Y(time), 'm', 'LineWidth',3)
 plot(0,4, 'bo', 'MarkerSize',8, 'MarkerFaceColor','g')
 title("Solution curve y(t)")
 xlabel("Time in seconds")
-ylabel("Y(t)")
+ylabel("y(t)")
 axis([0, 10, -40, 40])
 xticks(0:2:10)
 yticks(-40:20:40)
@@ -138,7 +161,7 @@ plot(0,0, 'bo', 'MarkerSize',8, 'MarkerFaceColor','g')
 title("Derivative of y(t)")
 xlabel("Time in seconds")
 ylabel("Dy(t)")
-axis([0, 10, -60, 60])
+axis([0, 10, -75, 75])
 xticks(0:2:10)
 yticks(-50:50:50)
 
@@ -148,10 +171,11 @@ hold on
 grid on
 phase = plot(Y(time), Dy(time), 'k', 'LineWidth',3);
 ic = plot(4,0, 'bo', 'MarkerSize',8, 'MarkerFaceColor','g');
+limit = plot(Yp(time), Ypp(time), 'r', 'LineWidth',3);
 title("Phase Plot")
-xlabel("Y(t)")
-ylabel("dy/dt(t)")
+xlabel("y(t)")
+ylabel("dy/dt")
 axis([-40, 40, -80, 80])
 xticks(-40:20:40)
 yticks(-60:20:60)
-legend([phase, ic], ["phase", "IC"])
+legend([phase, limit, ic], ["phase", "limit cycle", "IC"])
