@@ -27,7 +27,7 @@ L = simplify(int( exp(-s*t) * f, 0, inf))
 assume(s,'clear') 
 %% 2b
 clc, clear, close all
-syms a s t; assume(s>a)
+syms a s t; assume(s>0); assume(a,'real')
 f = sin(a*t);
 L = int( exp(-s*t) * f, 0, inf)
 assume(s,'clear')
